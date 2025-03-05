@@ -26,7 +26,7 @@ python collect.py {event-name} {scroll-time}
 
 - `event-name`: see `url`
 - `url`: `https://polymarket.com/event/{event-name}`
-- `scroll-time`: default 100
+- `scroll-time`: default 10
 
 ## data analysis
 

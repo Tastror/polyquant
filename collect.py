@@ -18,7 +18,7 @@ logger.info(f"Collecting data from {url}")
 if len(sys.argv) > 2:
     scroll_time = int(sys.argv[2])
 else:
-    scroll_time = 100
+    scroll_time = 10
 logger.info(f"scroll_time {scroll_time}")
 
 chromedriver_autoinstaller.install()
@@ -58,9 +58,9 @@ try:
     f.write(f"{now_time}\n")
 
     logger.debug("scrolling to target data element")
-    for i in range(scroll_time):
-        if i % 1 == 0:
-            logger.debug(f"scrolling {i + 1}/{scroll_time}")
+    for i in range(scroll_time * 2):
+        if i % 2 == 0:
+            logger.debug(f"scrolling {(i + 1) // 2}/{scroll_time}")
         browser.execute_script("window.scrollBy(0, document.body.scrollHeight)")
         time.sleep(0.5)
 
@@ -91,38 +91,59 @@ try:
     total = len(profile_list)
     logger.debug(f"data number (real): {total}")
 
-    logger.debug("get href profit and write data")
-    href_profit_dict = {}
+    logger.debug("get distinct href profit")
+    href_set = set()
+    href_list = []
     distinct_num = 0
     for num, profile in enumerate(profile_list):
         href = profile[0]
-        distinct = href not in href_profit_dict
+        distinct = href not in href_set
         if distinct:
             distinct_num += 1
-        if num % 10 == 0:
-            logger.debug(f"now reach number {num + 1}/{total}, distinct profile: {distinct_num}")
-        if not distinct:
-            for info in profile:
-                f.write(f"{info}\n")
-            f.write(f"{href_profit_dict[profile[0]]}\n")
-            continue
-        href_exec = f"window.open('{href}')"
-        browser.execute_script(href_exec)
-        browser.switch_to.window(browser.window_handles[-1])
-        profit_elem = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#__pm_layout > * > * + * + * > * + *")))
-        profit = ""
-        while profit == "":
-            profit = profit_elem.text.lstrip("Profit/loss").strip()
-        # print(f"{href}: {profit}")
-        href_profit_dict[href] = profit
-        browser.close()
-        browser.switch_to.window(browser.window_handles[0])
+            href_list.append(href)
+            href_set.add(href)
+    del href_set
+    logger.debug(f"distinct num: {distinct_num} in {total}")
+    if len(href_list) != distinct_num:
+        logger.error(f"distinct num error: {len(href_list)} != {distinct_num}")
+        raise Exception(f"distinct num error: {len(href_list)} != {distinct_num}")
 
+    logger.debug("visit distinct href profit")
+    href_profit_dict = {}
+    parallel_len = 5
+    href_parallel_list = []
+    for num, profile in enumerate(href_list):
+        if num % 10 == 0:
+            logger.debug(f"visiting {num + 1}/{distinct_num}")
+        href_parallel_list.append(profile)
+        if len(href_parallel_list) < parallel_len and num != distinct_num - 1:
+            continue
+        for href in href_parallel_list:
+            href_exec = f"window.open('{href}')"
+            browser.execute_script(href_exec)
+        for _ in range(len(href_parallel_list)):
+            browser.switch_to.window(browser.window_handles[-1])
+            href = browser.current_url
+            profit_elem = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#__pm_layout > * > * + * + * > * + *")))
+            profit = ""
+            while profit == "":
+                profit = profit_elem.text.lstrip("Profit/loss").strip()
+            href_profit_dict[href] = profit
+            browser.close()
+            browser.switch_to.window(browser.window_handles[0])
+        href_parallel_list.clear()
+    if len(href_parallel_list) != 0:
+        logger.error(f"href_parallel_list not clear: remaining {len(href_parallel_list)}")
+        raise Exception(f"href_parallel_list not clear: remaining {len(href_parallel_list)}")
+    if len(href_profit_dict) != distinct_num:
+        logger.error(f"href_profit_dict num error: {len(href_profit_dict)} != {distinct_num}")
+        raise Exception(f"href_profit_dict num error: {len(href_profit_dict)} != {distinct_num}")
+
+    logger.debug("write data")
+    for num, profile in enumerate(profile_list):
         for info in profile:
             f.write(f"{info}\n")
         f.write(f"{href_profit_dict[profile[0]]}\n")
-
-    logger.debug(f"distinct profile: {distinct_num} in {total}")
 
     f.close()
 
