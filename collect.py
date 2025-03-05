@@ -53,7 +53,7 @@ try:
 
     logger.debug("creating data file")
     now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    file_time = time.strftime("%Y-%m-%d-%H-%M", time.localtime())
+    file_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
     f = open(f"data-{file_time}.txt", "w")
     f.write(f"{now_time}\n")
 
