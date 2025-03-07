@@ -34,15 +34,17 @@ result = {
     "no": no
 }
 
-most_profit_person = { "profit": float("-inf") }
+most_profitable_person = { "profit": float("-inf") }
+most_nonprofitable_person = { "profit": float("inf") }
 prefix = 0
 start = False
+last_time = ""
+print()
 for lineno, line in enumerate(f):
     if not start:
         if line.strip() == "--- start ---":
             prefix = lineno + 1
             start = True
-            print()
             continue
         else:
             print(f"metadata: {line.strip()}")
@@ -55,6 +57,7 @@ for lineno, line in enumerate(f):
         tmp_dict["name"] = line.strip()
     elif profile_pos == 2:
         tmp_dict["reltime"] = line.strip()
+        last_time = tmp_dict["reltime"]
     elif profile_pos == 3:
         stock_match = stock_re.match(line.strip())
         if stock_match:
@@ -72,8 +75,10 @@ for lineno, line in enumerate(f):
 
         # print(f"{profile_num}: {tmp_dict}")
 
-        if tmp_dict["profit"] > most_profit_person["profit"]:
-            most_profit_person = tmp_dict
+        if tmp_dict["profit"] > most_profitable_person["profit"]:
+            most_profitable_person = tmp_dict
+        if tmp_dict["profit"] < most_nonprofitable_person["profit"]:
+            most_nonprofitable_person = tmp_dict
 
         yes_or_no = "yes" if tmp_dict["yes"] else "no" 
         buy_or_sell = "buy" if tmp_dict["buy"] else "sell"
@@ -93,13 +98,16 @@ for yes_or_no in ["yes", "no"]:
 
 f.close()
 
-
-print(f"Most profit person: {most_profit_person}")
+print(f"last time: {last_time}")
 print()
 
-print(f"Result: {json.dumps(result, indent=4)}")
+print(f"most profitable person: {most_profitable_person}")
+print()
+print(f"most nonprofitable person: {most_nonprofitable_person}")
+print()
+
+print(f"result: {json.dumps(result, indent=4)}")
 print(f"yes - no (money): {result['yes']['remain-money'] - result['no']['remain-money']}")
 print(f"yes - no (stock): {result['yes']['remain-stock'] - result['no']['remain-stock']}")
 print(f"yes - no (profit-weight-money): {result['yes']['profit-weight-remain-money'] - result['no']['profit-weight-remain-money']}")
 print(f"yes - no (profit-weight-stock): {result['yes']['profit-weight-remain-stock'] - result['no']['profit-weight-remain-stock']}")
-
