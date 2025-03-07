@@ -35,12 +35,20 @@ result = {
 }
 
 most_profit_person = { "profit": float("-inf") }
-
+prefix = 0
+start = False
 for lineno, line in enumerate(f):
-    if lineno == 0:
-        continue
-    profile_num = (lineno - 1) // 5
-    profile_pos = (lineno - 1) % 5
+    if not start:
+        if line.strip() == "--- start ---":
+            prefix = lineno + 1
+            start = True
+            # print(f"start prefix: {prefix}")
+            continue
+        else:
+            # print(f"not start: {line.strip()}")
+            continue
+    profile_num = (lineno - prefix) // 5
+    profile_pos = (lineno - prefix) % 5
     if profile_pos == 0:
         tmp_dict["url"] = line.strip()
     elif profile_pos == 1:

@@ -14,6 +14,8 @@ from log import logger, root_logger
 event_name = sys.argv[1].strip()
 url = "https://polymarket.com/event/" + event_name
 logger.info(f"Collecting data from {url}")
+event_split = event_name.split("-")
+event_prefix_word = "-".join(event_split[:3])
 
 if len(sys.argv) > 2:
     scroll_time = int(sys.argv[2])
@@ -54,8 +56,10 @@ try:
     logger.debug("creating data file")
     now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     file_time = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-    f = open(f"data-{file_time}.txt", "w")
+    f = open(f"data-{file_time}-{event_prefix_word}.txt", "w")
     f.write(f"{now_time}\n")
+    f.write(f"{url}\n")
+    f.write("--- start ---\n")
 
     logger.debug("scrolling to target data element")
     for i in range(scroll_time * 2):
