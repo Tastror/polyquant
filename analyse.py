@@ -42,10 +42,10 @@ for lineno, line in enumerate(f):
         if line.strip() == "--- start ---":
             prefix = lineno + 1
             start = True
-            # print(f"start prefix: {prefix}")
+            print()
             continue
         else:
-            # print(f"not start: {line.strip()}")
+            print(f"metadata: {line.strip()}")
             continue
     profile_num = (lineno - prefix) // 5
     profile_pos = (lineno - prefix) % 5
