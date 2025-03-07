@@ -38,6 +38,7 @@ most_profitable_person = { "profit": float("-inf") }
 most_nonprofitable_person = { "profit": float("inf") }
 prefix = 0
 start = False
+total_record_num = 0
 last_time = ""
 print()
 for lineno, line in enumerate(f):
@@ -67,6 +68,7 @@ for lineno, line in enumerate(f):
             tmp_dict["price"] = float(stock_match.group(4).replace(",", "")) / 100
             tmp_dict["total-price(show)"] = float(stock_match.group(5).replace(",", ""))
             tmp_dict["total-price"] = tmp_dict["stock"] * tmp_dict["price"]
+            total_record_num += 1
         else:
             raise ValueError(f"Invalid stock line: {line.strip()}")
     elif profile_pos == 4:
@@ -99,6 +101,7 @@ for yes_or_no in ["yes", "no"]:
 f.close()
 
 print(f"last time: {last_time}")
+print(f"total record number: {total_record_num}")
 print()
 
 print(f"most profitable person: {most_profitable_person}")
